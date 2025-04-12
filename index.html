@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WhatsApp Number Expoter By Rams Tech </title> 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      border-radius: 12px;
+    }
+    h2 {
+      margin-top: 0;
+      font-weight: 600;
+      color: #222;
+    }
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 20px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+    }
+    textarea {
+      height: 100px;
+    }
+    .button-group {
+      margin-top: 20px;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WhatsApp Unsaved Numbers Organizer</h2>
+
+    <label for="numbers">Paste numbers separated by commas:</label>
+    <textarea id="numbers" placeholder="e.g. 255700000001,255700000002"></textarea>
+
+    <label for="singleName">Enter a name to apply to all contacts:</label>
+    <input type="text" id="singleName" placeholder="e.g. Rams Tech 1,Group 1," />
+
+    <div class="button-group">
+      <button onclick="downloadCSV()">Download CSV</button>
+      <button onclick="downloadVCF()">Download VCF</button>
+    </div>
+  </div>
+
+  <script>
+    function getEntries() {
+      const numberRaw = document.getElementById("numbers").value;
+      const singleName = document.getElementById("singleName").value.trim();
+
+      const numbers = numberRaw.split(",").map(n => n.trim()).filter(n => n);
+
+      return numbers.map((number, index) => {
+        return {
+          name: singleName || `Contact ${index + 1}`,
+          number: number
+        };
+      });
+    }
+
+    function downloadCSV() {
+      const entries = getEntries();
+      let csvContent = "Name,Phone\n";
+      entries.forEach(entry => {
+        csvContent += `${entry.name},${entry.number}\n`;
+      });
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "contacts.csv";
+      a.click();
+    }
+
+    function downloadVCF() {
+      const entries = getEntries();
+      let vcfContent = "";
+      entries.forEach(entry => {
+        vcfContent += `BEGIN:VCARD\nVERSION:3.0\nFN:${entry.name}\nTEL;TYPE=CELL:${entry.number}\nEND:VCARD\n`;
+      });
+      const blob = new Blob([vcfContent], { type: 'text/vcard' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "contacts.vcf";
+      a.click();
+    }
+  </script>
+</body>
+</html>
