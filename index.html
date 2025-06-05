@@ -3,122 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WhatsApp Number Expoter By Rams Tech </title> 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>Contact Converter</title>
   <style>
     body {
-      font-family: 'Inter', Arial, Helvetica, sans-serif;
-      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
       color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      padding: 0;
     }
     .container {
-      max-width: 700px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 30px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      background-color: white;
+      padding: 2rem;
       border-radius: 12px;
-    }
-    h2 {
-      margin-top: 0;
-      font-weight: 600;
-      color: #222;
-    }
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 6px;
-      margin-top: 20px;
-    }
-    textarea, input {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
       width: 100%;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      resize: vertical;
+      text-align: center;
     }
-    textarea {
-      height: 100px;
+    h1 {
+      color: #007BFF;
     }
-    .button-group {
-      margin-top: 20px;
+    input[type="file"] {
+      margin-top: 1rem;
     }
     button {
-      background-color: #007bff;
-      color: #fff;
+      background-color: #007BFF;
+      color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
       border-radius: 8px;
-      font-size: 14px;
       cursor: pointer;
-      margin-right: 10px;
-      transition: background-color 0.3s ease;
+      margin-top: 1rem;
     }
     button:hover {
       background-color: #0056b3;
+    }
+    #output {
+      margin-top: 2rem;
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>WhatsApp Unsaved Numbers Organizer</h2>
-
-    <label for="numbers">Paste numbers separated by commas:</label>
-    <textarea id="numbers" placeholder="e.g. 255700000001,255700000002"></textarea>
-
-    <label for="singleName">Enter a name to apply to all contacts:</label>
-    <input type="text" id="singleName" placeholder="e.g. Rams Tech 1,Group 1," />
-
-    <div class="button-group">
-      <button onclick="downloadCSV()">Download CSV</button>
-      <button onclick="downloadVCF()">Download VCF</button>
-    </div>
+    <h1>📇 Contact File Converter</h1>
+    <p>Select a <strong>CSV</strong> or <strong>VCF (vCard)</strong> file to extract numbers:</p>
+    <input type="file" id="fileInput" accept=".csv,.vcf" />
+    <button onclick="convertContacts()">Convert</button>
+    <div id="output"></div>
   </div>
 
   <script>
-    function getEntries() {
-      const numberRaw = document.getElementById("numbers").value;
-      const singleName = document.getElementById("singleName").value.trim();
+    function convertContacts() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select a file");
 
-      const numbers = numberRaw.split(",").map(n => n.trim()).filter(n => n);
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const content = e.target.result;
+        let numbers = [];
 
-      return numbers.map((number, index) => {
-        return {
-          name: singleName || `Contact ${index + 1}`,
-          number: number
-        };
-      });
-    }
+        if (file.name.endsWith(".csv")) {
+          const lines = content.split("\n");
+          for (let line of lines) {
+            const values = line.split(/,|;|\t/);
+            for (let val of values) {
+              const clean = val.match(/\+?\d{6,}/);
+              if (clean) numbers.push(clean[0]);
+            }
+          }
+        } else if (file.name.endsWith(".vcf")) {
+          const matches = content.match(/TEL[^:\n]*:([^\n]+)/g);
+          if (matches) {
+            numbers = matches.map(line => line.split(":")[1].trim());
+          }
+        } else {
+          alert("Unsupported file type.");
+          return;
+        }
 
-    function downloadCSV() {
-      const entries = getEntries();
-      let csvContent = "Name,Phone\n";
-      entries.forEach(entry => {
-        csvContent += `${entry.name},${entry.number}\n`;
-      });
-      const blob = new Blob([csvContent], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "contacts.csv";
-      a.click();
-    }
-
-    function downloadVCF() {
-      const entries = getEntries();
-      let vcfContent = "";
-      entries.forEach(entry => {
-        vcfContent += `BEGIN:VCARD\nVERSION:3.0\nFN:${entry.name}\nTEL;TYPE=CELL:${entry.number}\nEND:VCARD\n`;
-      });
-      const blob = new Blob([vcfContent], { type: 'text/vcard' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "contacts.vcf";
-      a.click();
+        document.getElementById("output").textContent = numbers.join(", ");
+      };
+      reader.readAsText(file);
     }
   </script>
 </body>
